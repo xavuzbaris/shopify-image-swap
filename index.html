@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopify Image Swap</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0f0f0f;
+      --bg-card: #1a1a1a;
+      --bg-input: #252525;
+      --border: #333;
+      --text: #fff;
+      --text-dim: #888;
+      --accent: #5c6ac4;
+      --accent-hover: #4959bd;
+      --success: #50b83c;
+      --danger: #de3618;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #5c6ac4, #9c6ade);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header p {
+      color: var(--text-dim);
+    }
+
+    /* Setup Card */
+    .setup-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .setup-card h2 {
+      font-size: 1.125rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: var(--text-dim);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 0.9375rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .form-group input::placeholder {
+      color: #555;
+    }
+
+    .form-hint {
+      font-size: 0.8125rem;
+      color: var(--text-dim);
+      margin-top: 0.375rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.875rem 1.5rem;
+      border-radius: 10px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      font-size: 0.8125rem;
+      color: var(--text-dim);
+      margin-top: 0.25rem;
+    }
+
+    /* Action Panel */
+    .action-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 2rem;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .action-panel.visible {
+      display: flex;
+    }
+
+    .action-info h3 {
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .action-info p {
+      font-size: 0.875rem;
+      color: var(--text-dim);
+    }
+
+    /* Progress */
+    .progress-wrap {
+      display: none;
+      margin-top: 1rem;
+    }
+
+    .progress-wrap.visible {
+      display: block;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--bg-input);
+      border-radius: 100px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      font-size: 0.8125rem;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Products Grid */
+    .products-section {
+      display: none;
+    }
+
+    .products-section.visible {
+      display: block;
+    }
+
+    .products-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .products-header h2 {
+      font-size: 1.125rem;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .product-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      transition: border-color 0.2s;
+    }
+
+    .product-card:hover {
+      border-color: #444;
+    }
+
+    .product-title {
+      font-weight: 500;
+      margin-bottom: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .images-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+
+    .img-box {
+      flex: 1;
+      aspect-ratio: 1;
+      background: var(--bg-input);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .img-num {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      background: rgba(0,0,0,0.75);
+      color: white;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .swap-icon {
+      font-size: 1.25rem;
+      color: var(--text-dim);
+    }
+
+    .btn-swap {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-swap:hover:not(:disabled) {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .btn-swap:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-swap.done {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 100;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      body { padding: 1rem; }
+      .stats { grid-template-columns: 1fr; }
+      .action-panel { flex-direction: column; text-align: center; }
+      .products-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Hidden */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header class="header">
+      <h1>⇄ Image Swap</h1>
+      <p>Swap first and second product images with one click</p>
+    </header>
+
+    <!-- Setup -->
+    <div class="setup-card" id="setupCard">
+      <h2>🔑 Connect Your Store</h2>
+      
+      <div class="form-group">
+        <label>Store URL</label>
+        <input type="text" id="shopUrl" placeholder="your-store.myshopify.com">
+        <div class="form-hint">Your myshopify.com domain (not custom domain)</div>
+      </div>
+
+      <div class="form-group">
+        <label>Admin API Access Token</label>
+        <input type="password" id="accessToken" placeholder="shpat_xxxxxxxxxxxxxxxxxx">
+        <div class="form-hint">From Shopify Admin → Settings → Apps → Develop apps</div>
+      </div>
+
+      <button class="btn btn-primary btn-block" id="btnConnect" onclick="connect()">
+        Connect & Load Products
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats hidden" id="statsSection">
+      <div class="stat">
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Total Products</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="statEligible">0</div>
+        <div class="stat-label">With 2+ Images</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="statSwapped">0</div>
+        <div class="stat-label">Swapped</div>
+      </div>
+    </div>
+
+    <!-- Action Panel -->
+    <div class="action-panel" id="actionPanel">
+      <div class="action-info">
+        <h3>Bulk Swap</h3>
+        <p>Swap images for all eligible products at once</p>
+      </div>
+      <button class="btn btn-success" id="btnSwapAll" onclick="swapAll()">
+        ⇄ Swap All Images
+      </button>
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text">
+          <span id="progressStatus">Processing...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div class="products-section" id="productsSection">
+      <div class="products-header">
+        <h2>Products</h2>
+        <button class="btn btn-primary" onclick="connect()" style="padding: 0.625rem 1rem; font-size: 0.8125rem;">↻ Refresh</button>
+      </div>
+      <div class="products-grid" id="productsGrid"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span id="toastMsg"></span>
+  </div>
+
+  <script>
+    let products = [];
+    let swappedCount = 0;
+    let shop = '';
+    let token = '';
+
+    // Connect to store
+    async function connect() {
+      shop = document.getElementById('shopUrl').value.trim().replace('https://', '').replace('/', '');
+      token = document.getElementById('accessToken').value.trim();
+
+      if (!shop || !token) {
+        showToast('Please enter store URL and token', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btnConnect');
+      btn.disabled = true;
+      btn.textContent = 'Connecting...';
+
+      try {
+        const res = await fetch(`/api/products?shop=${encodeURIComponent(shop)}&token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+
+        if (data.error) {
+          showToast(data.error, 'error');
+          btn.disabled = false;
+          btn.textContent = 'Connect & Load Products';
+          return;
+        }
+
+        products = data.products;
+        
+        // Update UI
+        document.getElementById('setupCard').classList.add('hidden');
+        document.getElementById('statsSection').classList.remove('hidden');
+        document.getElementById('actionPanel').classList.add('visible');
+        document.getElementById('productsSection').classList.add('visible');
+
+        document.getElementById('statTotal').textContent = data.total;
+        document.getElementById('statEligible').textContent = data.eligible;
+
+        renderProducts();
+        showToast(`Loaded ${data.eligible} products`, 'success');
+
+      } catch (err) {
+        showToast('Connection failed: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Connect & Load Products';
+      }
+    }
+
+    // Render products
+    function renderProducts() {
+      const grid = document.getElementById('productsGrid');
+
+      if (products.length === 0) {
+        grid.innerHTML = '<p style="color: var(--text-dim); padding: 2rem; text-align: center;">No products with 2+ images found</p>';
+        return;
+      }
+
+      grid.innerHTML = products.map(p => `
+        <div class="product-card" id="card-${p.id}">
+          <div class="product-title" title="${p.title}">${p.title}</div>
+          <div class="images-row">
+            <div class="img-box">
+              <img src="${p.images[0]?.src}" id="img1-${p.id}">
+              <span class="img-num">1</span>
+            </div>
+            <span class="swap-icon">⇄</span>
+            <div class="img-box">
+              <img src="${p.images[1]?.src}" id="img2-${p.id}">
+              <span class="img-num">2</span>
+            </div>
+          </div>
+          <button class="btn-swap" id="btn-${p.id}" onclick="swapOne('${p.id}')">Swap</button>
+        </div>
+      `).join('');
+    }
+
+    // Swap single product
+    async function swapOne(productId) {
+      const btn = document.getElementById(`btn-${productId}`);
+      btn.disabled = true;
+      btn.textContent = 'Swapping...';
+
+      try {
+        const res = await fetch('/api/swap', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ shop, token, productId })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          // Swap images visually
+          const img1 = document.getElementById(`img1-${productId}`);
+          const img2 = document.getElementById(`img2-${productId}`);
+          const temp = img1.src;
+          img1.src = img2.src;
+          img2.src = temp;
+
+          btn.textContent = 'Swapped ✓';
+          btn.classList.add('done');
+          
+          swappedCount++;
+          document.getElementById('statSwapped').textContent = swappedCount;
+
+          showToast('Images swapped!', 'success');
+        } else {
+          btn.textContent = 'Swap';
+          showToast(data.error, 'error');
+        }
+      } catch (err) {
+        btn.textContent = 'Swap';
+        showToast('Error: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // Swap all products
+    async function swapAll() {
+      if (products.length === 0) {
+        showToast('No products to swap', 'error');
+        return;
+      }
+
+      if (!confirm(`Swap images for ${products.length} products?`)) return;
+
+      const btn = document.getElementById('btnSwapAll');
+      const progressWrap = document.getElementById('progressWrap');
+      const progressFill = document.getElementById('progressFill');
+      const progressStatus = document.getElementById('progressStatus');
+      const progressPercent = document.getElementById('progressPercent');
+
+      btn.disabled = true;
+      progressWrap.classList.add('visible');
+
+      let done = 0;
+      let errors = 0;
+
+      for (const p of products) {
+        try {
+          const res = await fetch('/api/swap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ shop, token, productId: p.id })
+          });
+
+          const data = await res.json();
+
+          if (data.success) {
+            done++;
+            swappedCount++;
+
+            // Update card UI
+            const img1 = document.getElementById(`img1-${p.id}`);
+            const img2 = document.getElementById(`img2-${p.id}`);
+            const cardBtn = document.getElementById(`btn-${p.id}`);
+            
+            if (img1 && img2) {
+              const temp = img1.src;
+              img1.src = img2.src;
+              img2.src = temp;
+            }
+            if (cardBtn) {
+              cardBtn.textContent = 'Swapped ✓';
+              cardBtn.classList.add('done');
+            }
+          } else {
+            errors++;
+          }
+        } catch {
+          errors++;
+        }
+
+        // Update progress
+        const pct = Math.round(((done + errors) / products.length) * 100);
+        progressFill.style.width = pct + '%';
+        progressPercent.textContent = pct + '%';
+        progressStatus.textContent = `${done} done, ${errors} failed`;
+        document.getElementById('statSwapped').textContent = swappedCount;
+
+        // Rate limit delay
+        await new Promise(r => setTimeout(r, 300));
+      }
+
+      btn.disabled = false;
+      showToast(`Completed: ${done} swapped, ${errors} failed`, done > 0 ? 'success' : 'error');
+    }
+
+    // Toast
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.className = `toast show ${type}`;
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Check saved credentials
+    window.onload = () => {
+      const saved = localStorage.getItem('shopify_creds');
+      if (saved) {
+        const { s, t } = JSON.parse(saved);
+        document.getElementById('shopUrl').value = s;
+        document.getElementById('accessToken').value = t;
+      }
+    };
+  </script>
+
+</body>
+</html>
