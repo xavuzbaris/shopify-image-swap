@@ -1,64 +1,30 @@
-export const config = {
-  runtime: 'edge',
-};
-
-export default async function handler(req) {
-  if (req.method !== 'GET') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
-  const { searchParams } = new URL(req.url);
-  const shop = searchParams.get('shop');
-  const token = searchParams.get('token');
+export default async function handler(req, res) {
+  const { shop, token } = req.query;
 
   if (!shop || !token) {
-    return new Response(JSON.stringify({ error: 'Missing shop or token' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(400).json({ error: 'Missing shop or token' });
   }
 
   try {
-    let allProducts = [];
-    let url = `https://${shop}/admin/api/2024-01/products.json?limit=250`;
-
-    while (url) {
-      const response = await fetch(url, {
+    const response = await fetch(
+      `https://${shop}/admin/api/2024-01/products.json?limit=250`,
+      {
         headers: {
           'X-Shopify-Access-Token': token,
           'Content-Type': 'application/json',
         },
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        return new Response(JSON.stringify({ error: `Shopify API error: ${response.status}` }), {
-          status: response.status,
-          headers: { 'Content-Type': 'application/json' },
-        });
       }
+    );
 
-      const data = await response.json();
-      allProducts = allProducts.concat(data.products);
-
-      // Check for next page
-      const linkHeader = response.headers.get('link');
-      url = null;
-      if (linkHeader) {
-        const nextMatch = linkHeader.match(/<([^>]+)>;\s*rel="next"/);
-        if (nextMatch) {
-          url = nextMatch[1];
-        }
-      }
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Shopify API error' });
     }
 
-    // Filter products with 2+ images
+    const data = await response.json();
+    const allProducts = data.products;
     const eligibleProducts = allProducts.filter(p => p.images && p.images.length >= 2);
 
-    return new Response(JSON.stringify({
+    return res.status(200).json({
       total: allProducts.length,
       eligible: eligibleProducts.length,
       products: eligibleProducts.map(p => ({
@@ -70,15 +36,9 @@ export default async function handler(req) {
           position: img.position
         }))
       }))
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(500).json({ error: error.message });
   }
 }
